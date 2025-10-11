@@ -1,0 +1,230 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id  @default(cuid())
+  sessionToken String   @unique
+  userId       String   @unique
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  password      String
+  role          UserRole  @default(PATIENT)
+  image         String?
+  phone         String?
+  dateOfBirth   DateTime?
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  patient       Patient?
+  doctor        Doctor?
+  accounts      Account[]
+  sessions      Session[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+model Patient {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bloodGroup        String?
+  emergencyContact  String?
+  allergies         String[]
+  chronicConditions String[]
+  insuranceNumber   String?
+  
+  medicalRecords    MedicalRecord[]
+  appointments      Appointment[]
+  prescriptions     Prescription[]
+  
+  @@index([userId])
+}
+
+model Doctor {
+  id              String         @id @default(cuid())
+  userId          String         @unique
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization  String
+  licenseNumber   String         @unique
+  qualifications  String[]
+  experienceYears Int
+  consultationFee Decimal        @db.Decimal(10, 2)
+  biography       String?
+  isAvailable     Boolean        @default(true)
+  rating          Float          @default(0)
+  
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+  availability    DoctorAvailability[]
+  
+  @@index([userId])
+  @@index([specialization])
+}
+
+model DoctorAvailability {
+  id        String   @id @default(cuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek Int      // 0=Sunday, 6=Saturday
+  startTime String   // Format: "09:00"
+  endTime   String   // Format: "17:00"
+  slotDuration Int   @default(30) // minutes
+  
+  @@index([doctorId])
+  @@unique([doctorId, dayOfWeek])
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  patientId       String
+  patient         Patient           @relation(fields: [patientId], references: [id])
+  doctorId        String
+  doctor          Doctor            @relation(fields: [doctorId], references: [id])
+  
+  scheduledAt     DateTime
+  duration        Int               @default(30) // minutes
+  status          AppointmentStatus @default(PENDING)
+  reason          String
+  symptoms        String[]
+  notes           String?
+  aiRecommendation String?          // AI-suggested specialist or priority
+  
+  prescription    Prescription?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+model MedicalRecord {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  
+  recordType  String   // "Lab Report", "Diagnosis", "Imaging", etc.
+  title       String
+  description String?
+  fileUrl     String?
+  fileType    String?
+  recordDate  DateTime
+  aiSummary   String?  // AI-generated summary of the record
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([patientId])
+  @@index([recordDate])
+}
+
+model Prescription {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  doctorId      String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  
+  medications   Medication[]
+  diagnosis     String
+  instructions  String?
+  validUntil    DateTime?
+  
+  createdAt     DateTime    @default(now())
+  
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+model Medication {
+  id              String       @id @default(cuid())
+  prescriptionId  String
+  prescription    Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  
+  name            String
+  dosage          String
+  frequency       String
+  duration        String
+  instructions    String?
+  
+  @@index([prescriptionId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // "VIEW", "CREATE", "UPDATE", "DELETE"
+  resource    String   // "Appointment", "MedicalRecord", etc.
+  resourceId  String
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([timestamp])
+  @@index([resource, resourceId])
+}

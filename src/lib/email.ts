@@ -1,28 +1,33 @@
-import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
+import { transporter } from "@/lib/nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "465"),
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+export async function sendVerificationEmail(user: any) {
+  const token = jwt.sign(
+    { userId: user.id },
+    process.env.NEXTAUTH_SECRET!,
+    { expiresIn: "24h" }
+  );
 
-export const sendEmail = async ({
-  to,
-  subject,
-  html,
-}: {
-  to: string;
-  subject: string;
-  html: string;
-}) => {
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM,
-    to,
-    subject,
-    html,
-  });
-};
+  const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify?token=${token}`;
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM, // 👈 use the env variable here
+    to: user.email,
+    subject: "Verify your email address",
+    html: `
+      <p>Hello ${user.name},</p>
+      <p>Thank you for registering. Please verify your email by clicking the link below:</p>
+      <a href="${verificationUrl}" target="_blank">Verify Email</a>
+      <p>This link will expire in 24 hours.</p>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Verification email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("❌ Error sending verification email:", error);
+    throw error;
+  }
+}

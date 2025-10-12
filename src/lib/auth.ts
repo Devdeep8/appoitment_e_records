@@ -1,50 +1,122 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-// If your Prisma file is located elsewhere, you can change the path
-import { PrismaClient } from "@/generated/prisma";
-import { google } from "better-auth/social-providers";
-import { emailOTP } from "better-auth/plugins";
-import { sendEmail } from "./email";
+import NextAuth, { NextAuthOptions, User as NextAuthUser } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import  db  from "@/lib/db";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-const prisma = new PrismaClient();
-export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "postgresql", // or "mysql", "postgresql", ...etc
-  }),
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: true,
-  },
-  plugins: [
-    google({
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(db) as any,
+  providers: [
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    emailOTP({
-      expiresIn: 60 * 10,
-      sendVerificationOnSignUp: true,
-      async sendVerificationOTP({ email, otp }) {
-        await sendEmail({
-          to: email,
-          subject: "Verify your email",
-          html: `
-            <h2>Hello ${email},</h2>
-            <p>Thank you for registering. Please verify your email with the code below:</p>
-            <h3 style="background-color: #f0f0f0; padding: 10px; text-align: center;">${otp}</h3>
-            <p>This code will expire in 10 minutes.</p>
-            <p>If you didn't register for this account, you can safely ignore this email.</p>
-          `,
-        });
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+        token: { label: "Token", type: "text" }, // For magic link login
+      },
+      async authorize(credentials) {
+        if (!credentials) return null;
+
+        // --- PATH 1: MAGIC LINK TOKEN AUTHENTICATION ---
+        if (credentials.token) {
+          try {
+            const decoded = jwt.verify(
+              credentials.token,
+              process.env.NEXTAUTH_SECRET!
+            );
+            if (typeof decoded === "string" || !decoded.userId) {
+              return null; // Invalid token payload
+            }
+            const user = await db.user.findUnique({
+              where: { id: decoded.userId },
+            });
+            return user || null;
+          } catch (error) {
+            console.error("JWT Verification Error:", error);
+            return null;
+          }
+        }
+
+        // --- PATH 2: STANDARD EMAIL & PASSWORD AUTHENTICATION ---
+        if (credentials.email && credentials.password) {
+          const user = await db.user.findUnique({
+            where: { email: credentials.email },
+          });
+          if (!user || !user.password) return null;
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          if (!isValid) return null;
+          return user;
+        }
+
+        return null;
       },
     }),
   ],
-  session : {
-    expiresIn: 60 * 60 * 24 * 7,
-    updateAge: 60 * 60 * 24,
+  session: { strategy: "jwt" },
+  callbacks: {
+    async jwt({ token, user, trigger, session }) {
+      if (user) {
+        token.sub = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.avatar = user.avatar; // 'user' has the full user object from the DB
+        token.role = user.role;
+      }
+      if (trigger === "update") {
+        if (session?.name !== undefined) token.name = session.name;
+        if (session?.avatar !== undefined) token.avatar = session.avatar;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.sub as string;
+        session.user.avatar = token.avatar as string | null; // Get the avatar from the token
+        session.user.role = token.role as string
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/(auth)/sign-in",
+    signOut: "/(auth)/sign-out",
+    error: "/(auth)/error",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+// At the bottom of your auth file
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      avatar: string | null; // <-- Add the avatar property
+      role: string;
+    } & NextAuthUser;
   }
-  // socialProviders: {
-  //     google : {
-  //         clientId
-  //     }
-  // }
-});
+
+  // Extend the default User type from your Prisma model
+  interface User {
+    avatar?: string | null;
+    role: string;
+  }
+}
+
+// Also update the JWT type
+declare module "next-auth/jwt" {
+  interface JWT {
+    avatar?: string | null;
+    role: string;
+  }
+}

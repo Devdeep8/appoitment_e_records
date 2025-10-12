@@ -97,11 +97,11 @@ model Doctor {
   id              String         @id @default(cuid())
   userId          String         @unique
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialization  String
-  licenseNumber   String         @unique
+  specialization  String        @default("MD")
+  licenseNumber   String ?        @unique 
   qualifications  String[]
-  experienceYears Int
-  consultationFee Decimal        @db.Decimal(10, 2)
+  experienceYears Int?
+  consultationFee Decimal?        @db.Decimal(10, 2)
   biography       String?
   isAvailable     Boolean        @default(true)
   rating          Float          @default(0)

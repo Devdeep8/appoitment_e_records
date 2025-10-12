@@ -37,11 +37,6 @@ type User = {
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "Acme Inc",
@@ -61,65 +56,62 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Dashboard",
       url: "#",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Appointment",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Patient",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Available",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Reports",
       url: "#",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Patient Report",
           url: "#",
         },
         {
-          title: "Explorer",
+          title: "Daily Time",
           url: "#",
         },
         {
-          title: "Quantum",
+          title: "Tomorrow Appointment",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Medical Record",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
+          title: "All Patient",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Upload",
           url: "#",
         },
         {
-          title: "Tutorials",
+          title: "Guide",
           url: "#",
         },
-        {
-          title: "Changelog",
-          url: "#",
-        },
+        
       ],
     },
     {
@@ -132,11 +124,11 @@ const data = {
           url: "#",
         },
         {
-          title: "Team",
+          title: "Notification",
           url: "#",
         },
         {
-          title: "Billing",
+          title: "Supscreption",
           url: "#",
         },
         {

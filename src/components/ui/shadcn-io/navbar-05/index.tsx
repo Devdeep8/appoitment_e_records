@@ -407,7 +407,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                 <span className="hidden font-bold text-xl sm:inline-block">RTM</span>
               </button>
               {/* Navigation menu */}
-              {!isMobile && (
+              {/* {!isMobile && (
                 <NavigationMenu className="flex">
                   <NavigationMenuList className="gap-1">
                     {navigationLinks.map((link, index) => (
@@ -426,7 +426,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                     ))}
                   </NavigationMenuList>
                 </NavigationMenu>
-              )}
+              )} */}
             </div>
           </div>
           {/* Right side */}

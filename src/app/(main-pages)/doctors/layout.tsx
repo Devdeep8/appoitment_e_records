@@ -49,8 +49,8 @@ export default async function DoctorOnboardingLayout({
         <SidebarInset>
           <header className="flex flex-col h-16 shrink-0  gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <Navbar05 />
-            <div className="flex gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
+            <div className="flex gap-2 items-center px-4">
+              <SidebarTrigger className="" />
               <Separator
                 orientation="vertical"
                 className="mr-2 data-[orientation=vertical]:h-4"

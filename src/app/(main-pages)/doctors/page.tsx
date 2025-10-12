@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth";
 export default async function DoctorPage() {
   // Example: fetch data on the server
   const session = await getServerSession(authOptions)
-  console.log(session)
 
   return (
     <main className="p-4">

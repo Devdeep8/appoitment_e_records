@@ -53,7 +53,7 @@ model User {
   name          String?
   password      String
   role          UserRole  @default(PATIENT)
-  image         String?
+  avatar         String?
   phone         String?
   dateOfBirth   DateTime?
   address       String?
@@ -103,6 +103,7 @@ model Doctor {
   experienceYears Int?
   consultationFee Decimal?        @db.Decimal(10, 2)
   biography       String?
+  city             String?        // Added for location
   isAvailable     Boolean        @default(true)
   rating          Float          @default(0)
   

@@ -3,6 +3,7 @@ import { Poppins, Montserrat } from "next/font/google";
 import "./globals.css";
 // import { Toaster } from "sonner";
 import { ThemeProvider } from "@/provider/theme-provider";
+import { AuthProvider } from "@/provider/session-provider";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -34,11 +35,14 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${montserrat.variable} antialiased`}
       >
+        <AuthProvider>
+
 
           <ThemeProvider attribute="class" defaultTheme="light">
             {children}
             {/* <Toaster richColors closeButton position="bottom-right" /> */}
           </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

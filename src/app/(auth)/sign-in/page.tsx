@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Mail, CheckCircle } from "lucide-react";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -98,7 +99,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center  p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Sign In</CardTitle>
@@ -106,11 +107,14 @@ export default function SignInPage() {
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {message && (
-            <div className="mb-4 rounded-md bg-green-50 p-4 text-green-800">
-              {message}
-            </div>
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                {message}
+              </AlertDescription>
+            </Alert>
           )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,7 +163,7 @@ export default function SignInPage() {
         <CardFooter className="flex justify-center">
           <div className="text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <a href="/(auth)/sign-up" className="text-primary hover:underline">
+            <a href="/sign-up" className="text-primary hover:underline">
               Sign up
             </a>
           </div>

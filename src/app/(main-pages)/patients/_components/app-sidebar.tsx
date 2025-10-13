@@ -3,13 +3,15 @@
 import * as React from "react";
 import {
   AudioWaveform,
+  BookOpen,
+  Bot,
   Command,
-  FileText,
+  Frame,
   GalleryVerticalEnd,
-  Home,
-  User,
-  Settings,
-   Activity,
+  Map,
+  PieChart,
+  Settings2,
+  SquareTerminal,
 } from "lucide-react";
 
 import { NavMain } from "@/app/(main-pages)/doctors/_components/nav-main";
@@ -35,7 +37,7 @@ type User = {
 
 // This is sample data.
 const data = {
-   teams: [
+  teams: [
     {
       name: "Acme Inc",
       logo: GalleryVerticalEnd,
@@ -56,98 +58,103 @@ const data = {
     {
       title: "Dashboard",
       url: "#",
-      icon: Home,
+      icon: SquareTerminal,
       isActive: true,
       items: [
         {
-          title: "Appointments",
-          url: "#appointments",
+          title: "Appointment",
+          url: "#",
         },
         {
-          title: "Book Appointment",
-          url: "#book",
+          title: "Patient",
+          url: "#",
         },
         {
-          title: "Available Slots",
-          url: "#available",
+          title: "Available",
+          url: "#",
         },
       ],
     },
     {
-      title: "Medical Records",
+      title: "Reports",
       url: "#",
-      icon: FileText,
+      icon: Bot,
       items: [
         {
-          title: "My Records",
-          url: "#records",
+          title: "Patient Report",
+          url: "#",
         },
         {
-          title: "Test Reports",
-          url: "#reports",
+          title: "Daily Time",
+          url: "#",
         },
         {
-          title: "Prescriptions",
-          url: "#prescriptions",
+          title: "Tomorrow Appointment",
+          url: "#",
         },
       ],
     },
     {
-      title: "Health",
+      title: "Medical Record",
       url: "#",
-      icon: Activity,
+      icon: BookOpen,
       items: [
         {
-          title: "Vital Signs",
-          url: "#vitals",
+          title: "All Patient",
+          url: "#",
         },
         {
-          title: "Medications",
-          url: "#medications",
+          title: "Upload",
+          url: "#",
         },
         {
-          title: "Allergies",
-          url: "#allergies",
+          title: "Guide",
+          url: "#",
         },
+        
       ],
     },
     {
       title: "Settings",
       url: "#",
-      icon: Settings,
+      icon: Settings2,
       items: [
         {
-          title: "Profile",
-          url: "#profile",
+          title: "General",
+          url: "#",
         },
         {
-          title: "Notifications",
-          url: "#notifications",
+          title: "Notification",
+          url: "#",
         },
         {
-          title: "Privacy",
-          url: "#privacy",
+          title: "Supscreption",
+          url: "#",
+        },
+        {
+          title: "Limits",
+          url: "#",
         },
       ],
     },
   ],
-  // quickActions: [
-  //   {
-  //     name: "Book Appointment",
-  //     icon: Calendar,
-  //     color: "blue"
-  //   },
-  //   {
-  //     name: "View Records",
-  //     icon: FileText,
-  //     color: "green"
-  //   },
-  //   {
-  //     name: "Medications",
-  //     icon: Pill,
-  //     color: "purple"
-  //   },
-  // ],
+  projects: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: Frame,
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: Map,
+    },
+  ],
 };
 
 export function AppSidebar({

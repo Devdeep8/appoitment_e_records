@@ -167,12 +167,14 @@ const NotificationMenu = ({
 const UserMenu = ({
   userName = 'Dr. John Doe',
   userEmail = 'john@example.com',
+  userRole = "Patient",
   userAvatar,
   onItemClick
 }: {
   userName?: string;
   userEmail?: string;
   userAvatar?: string | null;
+  userRole?: string | null
   onItemClick?: (item: string) => void;
 }) => (
   <DropdownMenu>
@@ -194,7 +196,7 @@ const UserMenu = ({
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium leading-none">{userName}</p>
             <Badge variant="secondary" className="text-xs">
-              Doctor
+              {userRole}
             </Badge>
           </div>
           <p className="text-xs leading-none text-muted-foreground">
@@ -277,6 +279,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
     const userName = session?.user?.name || 'Doctor';
     const userEmail = session?.user?.email || '';
     const userAvatar = session?.user?.avatar;
+    const userRole = session?.user?.role;
 
     useEffect(() => {
       const checkWidth = () => {
@@ -309,7 +312,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
         case 'profile':
           // Navigate to doctor profile using user ID
           if (userId) {
-            router.push(`/doctors/${userId}/profile`);
+            router.push(`/${userRole?.toLocaleLowerCase()}s/${userId}/profile`);
           } else {
             router.push('/doctors/profile');
           }
@@ -378,7 +381,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="start" className="w-64 p-1">
-                  <NavigationMenu className="max-w-none">
+                  {/* <NavigationMenu className="max-w-none">
                     <NavigationMenuList className="flex-col items-start gap-0">
                       {navigationLinks.map((link, index) => (
                         <NavigationMenuItem key={index} className="w-full">
@@ -391,7 +394,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                         </NavigationMenuItem>
                       ))}
                     </NavigationMenuList>
-                  </NavigationMenu>
+                  </NavigationMenu> */}
                 </PopoverContent>
               </Popover>
             )}
@@ -445,6 +448,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
               userName={userName}
               userEmail={userEmail}
               userAvatar={userAvatar}
+              userRole = {userRole}
               onItemClick={handleUserItemClick}
             />
           </div>

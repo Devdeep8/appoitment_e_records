@@ -9,7 +9,7 @@ import {
   Home,
   User,
   Settings,
-   Activity,
+  Activity,
 } from "lucide-react";
 
 import { NavMain } from "@/app/(main-pages)/doctors/_components/nav-main";
@@ -35,7 +35,7 @@ type User = {
 
 // This is sample data.
 const data = {
-   teams: [
+  teams: [
     {
       name: "Acme Inc",
       logo: GalleryVerticalEnd,
@@ -66,6 +66,7 @@ const data = {
         {
           title: "Book Appointment",
           url: "#book",
+          isActive: true,
         },
         {
           title: "Available Slots",
@@ -165,9 +166,7 @@ export function AppSidebar({
         <NavMain items={data.navMain} />
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
-      <SidebarFooter>
-        {user && <NavUser user={user} />}
-      </SidebarFooter>
+      <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

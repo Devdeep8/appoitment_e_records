@@ -5,12 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { BellIcon, HelpCircleIcon, UserIcon, ChevronDownIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from '@/components/ui/navigation-menu';
+
 import {
   Popover,
   PopoverContent,
@@ -24,11 +19,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { ComponentProps } from 'react';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 // Simple logo component for the navbar
 const Logo = (props: React.SVGAttributes<SVGElement>) => {
@@ -211,14 +205,8 @@ const UserMenu = ({
       <DropdownMenuItem onClick={() => onItemClick?.('settings')}>
         Settings
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
-        Billing
-      </DropdownMenuItem>
       <DropdownMenuItem onClick={() => onItemClick?.('appointments')}>
         Appointments
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('patients')}>
-        Patients
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={() => onItemClick?.('logout')}>
@@ -331,19 +319,11 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
           break;
         case 'logout':
           // Handle logout
-          router.push('/sign-in');
+          signOut();
           break;
         default:
           break;
       }
-    };
-
-    // Handle navigation link clicks
-    const handleNavItemClick = (href: string) => {
-      if (onNavItemClick) {
-        onNavItemClick(href);
-      }
-      router.push(href);
     };
 
     // Combine refs
@@ -381,20 +361,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="start" className="w-64 p-1">
-                  {/* <NavigationMenu className="max-w-none">
-                    <NavigationMenuList className="flex-col items-start gap-0">
-                      {navigationLinks.map((link, index) => (
-                        <NavigationMenuItem key={index} className="w-full">
-                          <button
-                            onClick={() => handleNavItemClick(link.href!)}
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline"
-                          >
-                            {link.label}
-                          </button>
-                        </NavigationMenuItem>
-                      ))}
-                    </NavigationMenuList>
-                  </NavigationMenu> */}
+                  
                 </PopoverContent>
               </Popover>
             )}
@@ -409,27 +376,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                 </div>
                 <span className="hidden font-bold text-xl sm:inline-block">RTM</span>
               </button>
-              {/* Navigation menu */}
-              {/* {!isMobile && (
-                <NavigationMenu className="flex">
-                  <NavigationMenuList className="gap-1">
-                    {navigationLinks.map((link, index) => (
-                      <NavigationMenuItem key={index}>
-                        <NavigationMenuLink
-                          href={link.href}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleNavItemClick(link.href!);
-                          }}
-                          className="text-muted-foreground hover:text-primary font-medium transition-colors cursor-pointer group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-                        >
-                          {link.label}
-                        </NavigationMenuLink>
-                      </NavigationMenuItem>
-                    ))}
-                  </NavigationMenuList>
-                </NavigationMenu>
-              )} */}
+              
             </div>
           </div>
           {/* Right side */}

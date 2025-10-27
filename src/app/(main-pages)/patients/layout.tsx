@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/app/(main-pages)/doctors/_components/app-sidebar";
+import { AppSidebar } from "@/app/(main-pages)/patients/_components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,

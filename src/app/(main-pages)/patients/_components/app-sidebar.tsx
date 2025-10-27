@@ -2,16 +2,13 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
+  Activity,
+  Calendar,
+  FileHeart,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
+  HeartPlus,
+  MessagesSquare,
   Settings2,
-  SquareTerminal,
 } from "lucide-react";
 
 import { NavMain } from "@/app/(main-pages)/doctors/_components/nav-main";
@@ -38,122 +35,41 @@ type User = {
 // This is sample data.
 const data = {
   teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
+    { name: "HealthHub", logo: GalleryVerticalEnd, plan: "Premium" },
+    { name: "CarePoint", logo: HeartPlus, plan: "Standard" },
   ],
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
+      url: "/patients/dashboard",
+      icon: Activity,
       items: [
-        {
-          title: "Appointment",
-          url: "#",
-        },
-        {
-          title: "Patient",
-          url: "#",
-        },
-        {
-          title: "Available",
-          url: "#",
-        },
+        { title: "Overview", url: "/patients/dashboard" },
+        { title: "My Vitals", url: "/patients/dashboard/vitals" },
+        { title: "Health Goals", url: "/patients/dashboard/goals" },
       ],
     },
     {
-      title: "Reports",
-      url: "#",
-      icon: Bot,
+      title: "Appointments",
+      url: "/patients/appointments",
+      icon: Calendar,
       items: [
-        {
-          title: "Patient Report",
-          url: "#",
-        },
-        {
-          title: "Daily Time",
-          url: "#",
-        },
-        {
-          title: "Tomorrow Appointment",
-          url: "#",
-        },
+        { title: "Upcoming", url: "/patients/appointments/upcoming" },
+        { title: "Past", url: "/patients/appointments/past" },
+        { title: "Book New", url: "/patients/appointments/book" },
       ],
     },
     {
-      title: "Medical Record",
-      url: "#",
-      icon: BookOpen,
+      title: "Medical",
+      url: "/patients/medical",
+      icon: FileHeart,
       items: [
-        {
-          title: "All Patient",
-          url: "#",
-        },
-        {
-          title: "Upload",
-          url: "#",
-        },
-        {
-          title: "Guide",
-          url: "#",
-        },
-        
+        { title: "Prescriptions", url: "/patients/medical/prescriptions" },
+        { title: "Lab Results", url: "/patients/medical/labs" },
+        { title: "History", url: "/patients/medical/history" },
       ],
     },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Notification",
-          url: "#",
-        },
-        {
-          title: "Supscreption",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
+   
   ],
 };
 

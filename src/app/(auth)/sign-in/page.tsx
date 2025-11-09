@@ -27,10 +27,12 @@ export default async function SignInPage({
     }
   }
 
+    const params = await searchParams;
+
   // 3️⃣ Handle search params
-  const callbackUrl = (searchParams.callbackUrl as string) || "/";
-  const token = searchParams.token as string | undefined;
-  const message = searchParams.message as string | undefined;
+  const callbackUrl =  (params.callbackUrl as string) || "/";
+  const token =  params.token as string | undefined;
+  const message =  params.message as string | undefined;
 
   // 4️⃣ Render Sign-in form inside Suspense
   return (

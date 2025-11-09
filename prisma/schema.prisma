@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -27,7 +24,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Account_userId_fkey")
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -39,7 +36,7 @@ model Session {
   sessionToken String   @unique
   userId       String   @unique
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_userId_fkey")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("sessions")
@@ -53,7 +50,7 @@ model User {
   name          String?
   password      String
   role          UserRole  @default(PATIENT)
-  avatar         String?
+  avatar        String?
   phone         String?
   dateOfBirth   DateTime?
   address       String?
@@ -89,43 +86,112 @@ model Patient {
   medicalRecords    MedicalRecord[]
   appointments      Appointment[]
   prescriptions     Prescription[]
+  reviews           Review[]
   
   @@index([userId])
+}
+
+model Location {
+  id       String  @id @default(cuid())
+  city     String
+  state    String?
+  country  String  @default("India")
+  latitude Float?
+  longitude Float?
+  
+  // Pre-calculated counts for faster loading
+  doctorCount Int @default(0)
+  
+  doctors  Doctor[]
+  
+  @@unique([city, state, country])
+  @@index([city])
+  @@map("locations")
+  locationSpecialtyTimeSlotCaches LocationSpecialtyTimeSlotCache[]
+  locationSpecialtyCaches LocationSpecialtyCache[]
+}
+
+model Specialty {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  icon        String?
+  
+  // Pre-calculated counts for faster loading
+  doctorCount Int @default(0)
+  
+  doctors     DoctorSpecialty[]
+  
+  @@index([name])
+  @@map("specialties")
+  locationSpecialtyTimeSlotCaches LocationSpecialtyTimeSlotCache[]
+  locationSpecialtyCaches LocationSpecialtyCache[]
 }
 
 model Doctor {
   id              String         @id @default(cuid())
   userId          String         @unique
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialization  String        @default("MD")
-  licenseNumber   String ?        @unique 
+  licenseNumber   String?        @unique 
   qualifications  String[]
   experienceYears Int?
-  consultationFee Decimal?        @db.Decimal(10, 2)
+  consultationFee Decimal?       @db.Decimal(10, 2)
   biography       String?
-  city             String?        // Added for location
   isAvailable     Boolean        @default(true)
   rating          Float          @default(0)
   
+  // Location and specialty associations
+  locationId      String
+  location        Location       @relation(fields: [locationId], references: [id])
+  
+  // Pre-denormalized data for faster queries
+  cityName        String         // Denormalized from location for faster filtering
+  clinicName      String?        // Primary clinic name
+  
+  specialties     DoctorSpecialty[]
+  timeSlots       TimeSlot[]
+  
   appointments    Appointment[]
   prescriptions   Prescription[]
-  availability    DoctorAvailability[]
+  reviews         Review[]
   
   @@index([userId])
-  @@index([specialization])
+  @@index([locationId])
+  @@index([cityName]) // For fast city-based queries
+  @@index([isAvailable]) // For filtering available doctors
 }
 
-model DoctorAvailability {
-  id        String   @id @default(cuid())
-  doctorId  String
-  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  dayOfWeek Int      // 0=Sunday, 6=Saturday
-  startTime String   // Format: "09:00"
-  endTime   String   // Format: "17:00"
-  slotDuration Int   @default(30) // minutes
+// Join table for Doctor-Specialty relationship
+model DoctorSpecialty {
+  id         String   @id @default(cuid())
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  specialtyId String
+  specialty  Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
+  isPrimary  Boolean  @default(false) // To mark primary specialty
+  
+  @@unique([doctorId, specialtyId])
+  @@index([doctorId])
+  @@index([specialtyId])
+  @@map("doctor_specialties")
+}
+
+// Optimized TimeSlot model with pre-calculated availability
+model TimeSlot {
+  id          String   @id @default(cuid())
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      // 0=Sunday, 6=Saturday
+  startTime   String   // Format: "09:00"
+  endTime     String   // Format: "17:00"
+  slotDuration Int     @default(30) // minutes
+  isActive    Boolean  @default(true)
+  
+  // Pre-calculated availability for today
+  availableToday Boolean @default(true)
   
   @@index([doctorId])
-  @@unique([doctorId, dayOfWeek])
+  @@unique([doctorId, dayOfWeek, startTime])
 }
 
 model Appointment {
@@ -213,6 +279,69 @@ model Medication {
   instructions    String?
   
   @@index([prescriptionId])
+}
+
+// New Review model for patient reviews of doctors
+model Review {
+  id        String   @id @default(cuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  
+  rating    Int      // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+  
+  @@unique([patientId, doctorId])
+  @@index([doctorId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+// Pre-calculated cache table for location-specialty combinations
+model LocationSpecialtyCache {
+  id         String @id @default(cuid())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+  specialtyId String
+  specialty  Specialty @relation(fields: [specialtyId], references: [id])
+  
+  // Pre-calculated counts
+  doctorCount Int @default(0)
+  avgRating   Float @default(0)
+  minFee      Decimal? @db.Decimal(10, 2)
+  maxFee      Decimal? @db.Decimal(10, 2)
+  
+  // Last updated timestamp for cache invalidation
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([locationId, specialtyId])
+  @@index([locationId])
+  @@index([specialtyId])
+  @@map("location_specialty_cache")
+}
+
+// Pre-calculated cache table for location-specialty-timeSlot combinations
+model LocationSpecialtyTimeSlotCache {
+  id         String @id @default(cuid())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+  specialtyId String
+  specialty  Specialty @relation(fields: [specialtyId], references: [id])
+  dayOfWeek  Int
+  timeSlot   String // "morning", "afternoon", "evening"
+  
+  // Pre-calculated counts
+  doctorCount Int @default(0)
+  
+  // Last updated timestamp for cache invalidation
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([locationId, specialtyId, dayOfWeek, timeSlot])
+  @@index([locationId])
+  @@index([specialtyId])
+  @@map("location_specialty_timeslot_cache")
 }
 
 model AuditLog {

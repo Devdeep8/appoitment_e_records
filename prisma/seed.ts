@@ -1,6 +1,5 @@
 // prisma/seed.ts
-
-import { UserRole  , AppointmentStatus , PrismaClient} from '@/generated/prisma'
+import { PrismaClient, UserRole, AppointmentStatus } from '../src/generated/prisma'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -13,13 +12,19 @@ async function main() {
   await prisma.prescription.deleteMany()
   await prisma.appointment.deleteMany()
   await prisma.medicalRecord.deleteMany()
-  await prisma.doctorAvailability.deleteMany()
-//   await prisma.patient.deleteMany()
-//   await prisma.doctor.deleteMany()
-//   await prisma.session.deleteMany()
-//   await prisma.account.deleteMany()
+  await prisma.timeSlot.deleteMany()
+  await prisma.doctorSpecialty.deleteMany()
+  await prisma.locationSpecialtyTimeSlotCache.deleteMany()
+  await prisma.locationSpecialtyCache.deleteMany()
+  await prisma.review.deleteMany()
+  await prisma.patient.deleteMany()
+  await prisma.doctor.deleteMany()
+  await prisma.specialty.deleteMany()
+  await prisma.location.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.account.deleteMany()
   await prisma.auditLog.deleteMany()
-//   await prisma.user.deleteMany()
+  await prisma.user.deleteMany()
 
   console.log('✅ Cleared existing data')
 
@@ -44,7 +49,165 @@ async function main() {
   console.log('✅ Created Admin user')
 
   // ==========================================
-  // 2. CREATE PATIENTS (5 patients)
+  // 2. CREATE LOCATIONS
+  // ==========================================
+  const locations = await Promise.all([
+    prisma.location.create({
+      data: {
+        city: 'Mumbai',
+        state: 'Maharashtra',
+        country: 'India',
+        latitude: 19.0760,
+        longitude: 72.8777,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Delhi',
+        state: 'Delhi',
+        country: 'India',
+        latitude: 28.7041,
+        longitude: 77.1025,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Bangalore',
+        state: 'Karnataka',
+        country: 'India',
+        latitude: 12.9716,
+        longitude: 77.5946,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Hyderabad',
+        state: 'Telangana',
+        country: 'India',
+        latitude: 17.3850,
+        longitude: 78.4867,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Chennai',
+        state: 'Tamil Nadu',
+        country: 'India',
+        latitude: 13.0827,
+        longitude: 80.2707,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Pune',
+        state: 'Maharashtra',
+        country: 'India',
+        latitude: 18.5204,
+        longitude: 73.8567,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Kolkata',
+        state: 'West Bengal',
+        country: 'India',
+        latitude: 22.5726,
+        longitude: 88.3639,
+      },
+    }),
+    prisma.location.create({
+      data: {
+        city: 'Ahmedabad',
+        state: 'Gujarat',
+        country: 'India',
+        latitude: 23.0225,
+        longitude: 72.5714,
+      },
+    }),
+  ])
+
+  console.log(`✅ Created ${locations.length} locations`)
+
+  // ==========================================
+  // 3. CREATE SPECIALTIES
+  // ==========================================
+  const specialties = await Promise.all([
+    prisma.specialty.create({
+      data: {
+        name: 'Cardiology',
+        description: 'Heart and cardiovascular system specialist',
+        icon: '❤️',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Dermatology',
+        description: 'Skin, hair, and nail specialist',
+        icon: '🧴',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Orthopedics',
+        description: 'Bones, joints, and muscles specialist',
+        icon: '🦴',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Pediatrics',
+        description: 'Children health specialist',
+        icon: '👶',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Neurology',
+        description: 'Brain and nervous system specialist',
+        icon: '🧠',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Gynecology',
+        description: 'Female reproductive system specialist',
+        icon: '👩',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Ophthalmology',
+        description: 'Eye care specialist',
+        icon: '👁️',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'General Medicine',
+        description: 'General health and common illnesses',
+        icon: '🩺',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'ENT',
+        description: 'Ear, nose, and throat specialist',
+        icon: '👂',
+      },
+    }),
+    prisma.specialty.create({
+      data: {
+        name: 'Psychiatry',
+        description: 'Mental health specialist',
+        icon: '🧠',
+      },
+    }),
+  ])
+
+  console.log(`✅ Created ${specialties.length} specialties`)
+
+  // ==========================================
+  // 4. CREATE PATIENTS (5 patients)
   // ==========================================
   const patientsData = [
     {
@@ -142,112 +305,233 @@ async function main() {
   console.log(`✅ Created ${patients.length} patients`)
 
   // ==========================================
-  // 3. CREATE DOCTORS (8 doctors with different specializations)
+  // 5. CREATE DOCTORS (15 doctors with different specializations and locations)
   // ==========================================
   const doctorsData = [
     {
       email: 'dr.sharma@hospital.com',
       name: 'Dr. Rajesh Sharma',
       phone: '+91-9876543220',
-      specialization: 'Cardiology',
+      locationId: locations[0].id, // Mumbai
+      cityName: locations[0].city,
+      clinicName: 'Mumbai Heart Institute',
       licenseNumber: 'MED-CARD-001',
       qualifications: ['MBBS', 'MD Cardiology', 'FACC'],
       experienceYears: 15,
       consultationFee: 1500,
       biography: 'Senior Cardiologist with 15+ years of experience in treating heart diseases.',
-      city: 'Mumbai',
       rating: 4.8,
+      specialties: [specialties[0].id], // Cardiology
     },
     {
       email: 'dr.mehta@hospital.com',
       name: 'Dr. Priya Mehta',
       phone: '+91-9876543221',
-      specialization: 'Dermatology',
+      locationId: locations[1].id, // Delhi
+      cityName: locations[1].city,
+      clinicName: 'Delhi Skin Clinic',
       licenseNumber: 'MED-DERM-002',
       qualifications: ['MBBS', 'MD Dermatology'],
       experienceYears: 10,
       consultationFee: 1200,
       biography: 'Specialist in skin care and cosmetic dermatology.',
-      city: 'Delhi',
       rating: 4.6,
+      specialties: [specialties[1].id], // Dermatology
     },
     {
       email: 'dr.patel@hospital.com',
       name: 'Dr. Anil Patel',
       phone: '+91-9876543222',
-      specialization: 'Orthopedics',
+      locationId: locations[2].id, // Bangalore
+      cityName: locations[2].city,
+      clinicName: 'Bangalore Ortho Care',
       licenseNumber: 'MED-ORTH-003',
       qualifications: ['MBBS', 'MS Orthopedics', 'FICS'],
       experienceYears: 20,
       consultationFee: 1800,
       biography: 'Expert in joint replacement and sports injuries.',
-      city: 'Bangalore',
       rating: 4.9,
+      specialties: [specialties[2].id], // Orthopedics
     },
     {
       email: 'dr.singh@hospital.com',
       name: 'Dr. Kavita Singh',
       phone: '+91-9876543223',
-      specialization: 'Pediatrics',
+      locationId: locations[5].id, // Pune
+      cityName: locations[5].city,
+      clinicName: 'Pune Child Care',
       licenseNumber: 'MED-PED-004',
       qualifications: ['MBBS', 'MD Pediatrics'],
       experienceYears: 12,
       consultationFee: 1000,
       biography: 'Child health specialist with focus on preventive care.',
-      city: 'Pune',
       rating: 4.7,
+      specialties: [specialties[3].id], // Pediatrics
     },
     {
       email: 'dr.gupta@hospital.com',
       name: 'Dr. Amit Gupta',
       phone: '+91-9876543224',
-      specialization: 'General Medicine',
+      locationId: locations[0].id, // Mumbai
+      cityName: locations[0].city,
+      clinicName: 'Mumbai General Clinic',
       licenseNumber: 'MED-GEN-005',
       qualifications: ['MBBS', 'MD Internal Medicine'],
       experienceYears: 8,
       consultationFee: 800,
       biography: 'General physician for common ailments and health checkups.',
-      city: 'Mumbai',
       rating: 4.5,
+      specialties: [specialties[7].id], // General Medicine
     },
     {
       email: 'dr.reddy@hospital.com',
       name: 'Dr. Sanjay Reddy',
       phone: '+91-9876543225',
-      specialization: 'Neurology',
+      locationId: locations[3].id, // Hyderabad
+      cityName: locations[3].city,
+      clinicName: 'Hyderabad Neuro Care',
       licenseNumber: 'MED-NEUR-006',
       qualifications: ['MBBS', 'DM Neurology'],
       experienceYears: 18,
       consultationFee: 2000,
       biography: 'Neurologist specializing in brain and nerve disorders.',
-      city: 'Hyderabad',
       rating: 4.9,
+      specialties: [specialties[4].id], // Neurology
     },
     {
       email: 'dr.iyer@hospital.com',
       name: 'Dr. Lakshmi Iyer',
       phone: '+91-9876543226',
-      specialization: 'Gynecology',
+      locationId: locations[4].id, // Chennai
+      cityName: locations[4].city,
+      clinicName: 'Chennai Women\'s Health',
       licenseNumber: 'MED-GYN-007',
       qualifications: ['MBBS', 'MS Gynecology'],
       experienceYears: 14,
       consultationFee: 1300,
       biography: 'Women\'s health specialist and obstetrician.',
-      city: 'Chennai',
       rating: 4.8,
+      specialties: [specialties[5].id], // Gynecology
     },
     {
       email: 'dr.khan@hospital.com',
       name: 'Dr. Farhan Khan',
       phone: '+91-9876543227',
-      specialization: 'Ophthalmology',
+      locationId: locations[1].id, // Delhi
+      cityName: locations[1].city,
+      clinicName: 'Delhi Eye Center',
       licenseNumber: 'MED-OPH-008',
       qualifications: ['MBBS', 'MS Ophthalmology'],
       experienceYears: 11,
       consultationFee: 1100,
       biography: 'Eye care specialist with expertise in cataract surgery.',
-      city: 'Delhi',
       rating: 4.6,
+      specialties: [specialties[6].id], // Ophthalmology
+    },
+    {
+      email: 'dr.joshi@hospital.com',
+      name: 'Dr. Anjali Joshi',
+      phone: '+91-9876543228',
+      locationId: locations[0].id, // Mumbai
+      cityName: locations[0].city,
+      clinicName: 'Mumbai ENT Clinic',
+      licenseNumber: 'MED-ENT-009',
+      qualifications: ['MBBS', 'MS ENT'],
+      experienceYears: 9,
+      consultationFee: 900,
+      biography: 'Specialist in ear, nose, and throat disorders.',
+      rating: 4.4,
+      specialties: [specialties[8].id], // ENT
+    },
+    {
+      email: 'dr.verma@hospital.com',
+      name: 'Dr. Rohan Verma',
+      phone: '+91-9876543229',
+      locationId: locations[2].id, // Bangalore
+      cityName: locations[2].city,
+      clinicName: 'Bangalore Mental Health',
+      licenseNumber: 'MED-PSY-010',
+      qualifications: ['MBBS', 'MD Psychiatry'],
+      experienceYears: 7,
+      consultationFee: 1400,
+      biography: 'Psychiatrist specializing in anxiety and depression.',
+      rating: 4.7,
+      specialties: [specialties[9].id], // Psychiatry
+    },
+    {
+      email: 'dr.nair@hospital.com',
+      name: 'Dr. Meera Nair',
+      phone: '+91-9876543230',
+      locationId: locations[4].id, // Chennai
+      cityName: locations[4].city,
+      clinicName: 'Chennai Heart Institute',
+      licenseNumber: 'MED-CARD-011',
+      qualifications: ['MBBS', 'MD Cardiology', 'DM Cardiology'],
+      experienceYears: 16,
+      consultationFee: 1600,
+      biography: 'Interventional cardiologist with expertise in angioplasty.',
+      rating: 4.9,
+      specialties: [specialties[0].id], // Cardiology
+    },
+    {
+      email: 'dr.kapoor@hospital.com',
+      name: 'Dr. Vikram Kapoor',
+      phone: '+91-9876543231',
+      locationId: locations[5].id, // Pune
+      cityName: locations[5].city,
+      clinicName: 'Pune Skin & Laser',
+      licenseNumber: 'MED-DERM-012',
+      qualifications: ['MBBS', 'MD Dermatology', 'Fellowship in Cosmetic Dermatology'],
+      experienceYears: 13,
+      consultationFee: 1400,
+      biography: 'Dermatologist with expertise in laser treatments.',
+      rating: 4.8,
+      specialties: [specialties[1].id], // Dermatology
+    },
+    {
+      email: 'dr.desai@hospital.com',
+      name: 'Dr. Pooja Desai',
+      phone: '+91-9876543232',
+      locationId: locations[3].id, // Hyderabad
+      cityName: locations[3].city,
+      clinicName: 'Hyderabad Women\'s Care',
+      licenseNumber: 'MED-GYN-013',
+      qualifications: ['MBBS', 'MS Gynecology', 'Fellowship in Reproductive Medicine'],
+      experienceYears: 11,
+      consultationFee: 1500,
+      biography: 'Gynecologist specializing in infertility treatment.',
+      rating: 4.7,
+      specialties: [specialties[5].id], // Gynecology
+    },
+    {
+      email: 'dr.malhotra@hospital.com',
+      name: 'Dr. Arjun Malhotra',
+      phone: '+91-9876543233',
+      locationId: locations[6].id, // Kolkata
+      cityName: locations[6].city,
+      clinicName: 'Kolkata Ortho Center',
+      licenseNumber: 'MED-ORTH-014',
+      qualifications: ['MBBS', 'MS Orthopedics', 'MCh Orthopedics'],
+      experienceYears: 22,
+      consultationFee: 2000,
+      biography: 'Senior orthopedic surgeon with expertise in spine surgery.',
+      rating: 4.9,
+      specialties: [specialties[2].id], // Orthopedics
+    },
+    {
+      email: 'dr.pillai@hospital.com',
+      name: 'Dr. Suresh Pillai',
+      phone: '+91-9876543234',
+      locationId: locations[7].id, // Ahmedabad
+      cityName: locations[7].city,
+      clinicName: 'Ahmedabad Child Care',
+      licenseNumber: 'MED-PED-015',
+      qualifications: ['MBBS', 'MD Pediatrics', 'Fellowship in Neonatology'],
+      experienceYears: 14,
+      consultationFee: 1200,
+      biography: 'Pediatrician with expertise in newborn care.',
+      rating: 4.8,
+      specialties: [specialties[3].id], // Pediatrics
     },
   ]
 
@@ -264,20 +548,35 @@ async function main() {
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${doctorData.name}`,
         doctor: {
           create: {
-            specialization: doctorData.specialization,
             licenseNumber: doctorData.licenseNumber,
             qualifications: doctorData.qualifications,
             experienceYears: doctorData.experienceYears,
             consultationFee: doctorData.consultationFee,
             biography: doctorData.biography,
-            city: doctorData.city,
+            locationId: doctorData.locationId,
+            cityName: doctorData.cityName,
+            clinicName: doctorData.clinicName,
             isAvailable: true,
             rating: doctorData.rating,
+            specialties: {
+              create: doctorData.specialties.map((specialtyId, index) => ({
+                specialtyId,
+                isPrimary: index === 0,
+              })),
+            },
           },
         },
       },
       include: {
-        doctor: true,
+        doctor: {
+          include: {
+            specialties: {
+              include: {
+                specialty: true,
+              },
+            },
+          },
+        },
       },
     })
     doctors.push(user)
@@ -286,12 +585,12 @@ async function main() {
   console.log(`✅ Created ${doctors.length} doctors`)
 
   // ==========================================
-  // 4. CREATE DOCTOR AVAILABILITY
+  // 6. CREATE TIME SLOTS FOR EACH DOCTOR
   // ==========================================
   for (const doctor of doctors) {
     // Monday to Friday: 9 AM - 5 PM
     for (let day = 1; day <= 5; day++) {
-      await prisma.doctorAvailability.create({
+      await prisma.timeSlot.create({
         data: {
           doctorId: doctor.doctor!.id,
           dayOfWeek: day,
@@ -303,7 +602,7 @@ async function main() {
     }
 
     // Saturday: 9 AM - 1 PM
-    await prisma.doctorAvailability.create({
+    await prisma.timeSlot.create({
       data: {
         doctorId: doctor.doctor!.id,
         dayOfWeek: 6,
@@ -314,10 +613,125 @@ async function main() {
     })
   }
 
-  console.log('✅ Created doctor availability schedules')
+  console.log('✅ Created doctor time slots')
 
   // ==========================================
-  // 5. CREATE APPOINTMENTS
+  // 7. CREATE LOCATION-SPECIALTY CACHE
+  // ==========================================
+  for (const location of locations) {
+    for (const specialty of specialties) {
+      // Count doctors in this location with this specialty
+      const doctorCount = await prisma.doctorSpecialty.count({
+        where: {
+          doctor: {
+            locationId: location.id,
+            isAvailable: true,
+          },
+          specialtyId: specialty.id,
+        },
+      })
+
+      if (doctorCount > 0) {
+        // Get min and max consultation fees
+        const feeData = await prisma.doctor.findMany({
+          where: {
+            locationId: location.id,
+            isAvailable: true,
+            specialties: {
+              some: {
+                specialtyId: specialty.id,
+              },
+            },
+          },
+          select: {
+            consultationFee: true,
+            rating: true,
+          },
+        })
+
+        const fees = feeData.map(d => d.consultationFee).filter(Boolean) as unknown as number[]
+        const ratings = feeData.map(d => d.rating)
+        const avgRating = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+
+        await prisma.locationSpecialtyCache.create({
+          data: {
+            locationId: location.id,
+            specialtyId: specialty.id,
+            doctorCount,
+            avgRating,
+            minFee: fees.length > 0 ? Math.min(...fees) : null,
+            maxFee: fees.length > 0 ? Math.max(...fees) : null,
+          },
+        })
+      }
+    }
+  }
+
+  console.log('✅ Created location-specialty cache')
+
+  // ==========================================
+  // 8. CREATE LOCATION-SPECIALTY-TIMESLOT CACHE
+  // ==========================================
+  const timeSlots = ['morning', 'afternoon', 'evening']
+  
+  for (const location of locations) {
+    for (const specialty of specialties) {
+      for (let day = 0; day < 7; day++) {
+        for (const timeSlot of timeSlots) {
+          // Define time ranges
+          let startTime, endTime
+          
+          if (timeSlot === 'morning') {
+            startTime = '09:00'
+            endTime = '12:00'
+          } else if (timeSlot === 'afternoon') {
+            startTime = '12:00'
+            endTime = '17:00'
+          } else {
+            startTime = '17:00'
+            endTime = '21:00'
+          }
+          
+          // Count doctors available at this time
+          const doctorCount = await prisma.doctor.count({
+            where: {
+              locationId: location.id,
+              isAvailable: true,
+              specialties: {
+                some: {
+                  specialtyId: specialty.id,
+                },
+              },
+              timeSlots: {
+                some: {
+                  dayOfWeek: day,
+                  startTime: { lte: startTime },
+                  endTime: { gte: endTime },
+                },
+              },
+            },
+          })
+          
+          if (doctorCount > 0) {
+            await prisma.locationSpecialtyTimeSlotCache.create({
+              data: {
+                locationId: location.id,
+                specialtyId: specialty.id,
+                dayOfWeek: day,
+                timeSlot,
+                doctorCount,
+              },
+            })
+          }
+        }
+      }
+    }
+  }
+
+  console.log('✅ Created location-specialty-timeslot cache')
+
+  // ==========================================
+  // 9. CREATE APPOINTMENTS
   // ==========================================
   const now = new Date()
   const appointments = []
@@ -365,7 +779,7 @@ async function main() {
         reason: 'General Consultation',
         symptoms: ['Back pain', 'Chest pain', 'Stomach ache'][i % 3] ? 
           [['Back pain', 'Chest pain', 'Stomach ache'][i % 3]] : [],
-        aiRecommendation: `Recommended specialist: ${doctor.doctor!.specialization}`,
+        aiRecommendation: `Recommended specialist: ${doctor.doctor!.specialties[0].specialty.name}`,
       },
     })
   }
@@ -394,7 +808,7 @@ async function main() {
   console.log('✅ Created 21 appointments (10 completed, 8 confirmed, 3 pending)')
 
   // ==========================================
-  // 6. CREATE PRESCRIPTIONS FOR COMPLETED APPOINTMENTS
+  // 10. CREATE PRESCRIPTIONS FOR COMPLETED APPOINTMENTS
   // ==========================================
   for (const appointment of appointments) {
     const prescription = await prisma.prescription.create({
@@ -430,7 +844,7 @@ async function main() {
   console.log('✅ Created prescriptions with medications')
 
   // ==========================================
-  // 7. CREATE MEDICAL RECORDS
+  // 11. CREATE MEDICAL RECORDS
   // ==========================================
   for (let i = 0; i < patients.length; i++) {
     const patient = patients[i]
@@ -467,7 +881,29 @@ async function main() {
   console.log('✅ Created medical records for all patients')
 
   // ==========================================
-  // 8. CREATE AUDIT LOGS
+  // 12. CREATE REVIEWS
+  // ==========================================
+  for (let i = 0; i < 15; i++) {
+    const patient = patients[i % patients.length]
+    const doctor = doctors[i % doctors.length]
+    const rating = Math.floor(Math.random() * 2) + 4 // 4-5 stars
+    
+    await prisma.review.create({
+      data: {
+        patientId: patient.patient!.id,
+        doctorId: doctor.doctor!.id,
+        rating,
+        comment: rating === 5 
+          ? 'Excellent doctor! Very knowledgeable and caring.' 
+          : 'Good experience. Doctor was professional and helpful.',
+      },
+    })
+  }
+
+  console.log('✅ Created patient reviews')
+
+  // ==========================================
+  // 13. CREATE AUDIT LOGS
   // ==========================================
   for (let i = 0; i < 20; i++) {
     const user = [...patients, ...doctors, admin][i % (patients.length + doctors.length + 1)]
@@ -487,6 +923,33 @@ async function main() {
   console.log('✅ Created audit logs')
 
   // ==========================================
+  // 14. UPDATE DOCTOR COUNTS IN LOCATIONS AND SPECIALTIES
+  // ==========================================
+  for (const location of locations) {
+    const doctorCount = await prisma.doctor.count({
+      where: { locationId: location.id },
+    })
+    
+    await prisma.location.update({
+      where: { id: location.id },
+      data: { doctorCount },
+    })
+  }
+  
+  for (const specialty of specialties) {
+    const doctorCount = await prisma.doctorSpecialty.count({
+      where: { specialtyId: specialty.id },
+    })
+    
+    await prisma.specialty.update({
+      where: { id: specialty.id },
+      data: { doctorCount },
+    })
+  }
+
+  console.log('✅ Updated doctor counts in locations and specialties')
+
+  // ==========================================
   // SUMMARY
   // ==========================================
   console.log('\n🎉 Database seeding completed successfully!\n')
@@ -496,9 +959,12 @@ async function main() {
   console.log(`   - Admin: 1`)
   console.log(`   - Patients: ${patients.length}`)
   console.log(`   - Doctors: ${doctors.length}`)
+  console.log(`🏥 Locations: ${locations.length}`)
+  console.log(`🩺 Specialties: ${specialties.length}`)
   console.log(`📅 Appointments: 21`)
   console.log(`💊 Prescriptions: ${appointments.length}`)
   console.log(`📄 Medical Records: ${patients.length * 2}`)
+  console.log(`⭐ Reviews: 15`)
   console.log(`📝 Audit Logs: 20`)
   console.log('─────────────────────────────────────\n')
   
